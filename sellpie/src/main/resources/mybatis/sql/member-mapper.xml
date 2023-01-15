@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC
+"-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- Namespace 는 실제 마이바티스를 통해
+    SQL에 접근할 때 사용하는 매퍼 파일의 별칭이다. 
+    보통 서비스의 이름과 같게 설정하여
+    연결의 착오를 줄인다. -->
+<mapper namespace="memberMapper">
+	<select id="userLogin" parameterType="String"  resultType="Member">
+		SELECT EMAIL, PWD, NAME, GENDER, PHONE, BIRTH, PROFILE_IMG,
+			CASE WHEN SUBSTR(BIRTH,1,2) >= '50' 
+           		 THEN EXTRACT (YEAR FROM SYSDATE) -  EXTRACT(YEAR FROM (TO_DATE(SUBSTR('19'||BIRTH, 1,8))))
+           		 ELSE EXTRACT (YEAR FROM SYSDATE) -  EXTRACT(YEAR FROM (TO_DATE(SUBSTR('20'||BIRTH, 1,8))))
+            END AS AGE
+		FROM MEMBER
+		WHERE EMAIL = #{email}
+	</select>
+	<update id="keepLogin">
+		UPDATE MEMBER SET SESSIONKEY = #{sessionId} , SESSIONLIMIT =#{next} WHERE EMAIL = #{email}
+	</update>
+	<select id="checkUserSessionKey" resultType="Member">
+		SELECT EMAIL, PWD, NAME, GENDER, PHONE, BIRTH, PROFILE_IMG FROM MEMBER WHERE SESSIONKEY = #{sessionId} and SESSIONLIMIT > SYSDATE
+	</select>
+	<insert id="insertMember" parameterType="Member">
+		INSERT INTO MEMBER VALUES(#{email},#{pwd},#{name},#{gender},#{phone},#{birth}, NULL, DEFAULT, NULL, SYSDATE )
+	</insert>
+	<update id="updateMemberPwd" parameterType="Member">
+		UPDATE MEMBER SET PWD = #{pwd}
+		WHERE EMAIL = #{email}
+	</update>
+	<select id="searchMemberList" parameterType="String" resultType="Member">
+		SELECT EMAIL, PWD, NAME, GENDER, PHONE, BIRTH, PROFILE_IMG
+		FROM MEMBER
+		WHERE NAME LIKE '%'||#{searchText}||'%'
+	</select>
+	<update id="modifyUserInfo" parameterType="Member">
+		UPDATE MEMBER SET PWD =#{pwd}, NAME=#{name}, GENDER=#{gender}, PHONE=#{phone} WHERE EMAIL=#{email}
+	</update>
+	<update id="updateProfileImg" parameterType="Member">
+		UPDATE MEMBER SET PROFILE_IMG = #{profileImg} WHERE EMAIL = #{email}
+	</update>
+	<select id="selectMemberCount" resultType="int">
+		SELECT COUNT(*) 
+		FROM MEMBER
+		WHERE ENROLLDATE LIKE SYSDATE
+	</select>
+</mapper>
+
+
+
+
+
+
+
